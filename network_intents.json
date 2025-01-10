@@ -8,7 +8,7 @@
           {
             "hostname": "RX3",
             "interfaces": [
-            	{
+              {
                 "name": "GigabitEthernet3/0",
                 "network": "Network1",
                 "connected": "RX2"
@@ -28,11 +28,9 @@
                 "network": "Network2",
                 "connected": "RX1"
               }
-            ],
-        "routing_protocol":"BGP",
-        "ibgp_links" : [ ["RX3","RX2"],["RX2","RX1"],["RX1","RX3"]]
-			},
-			{	
+            ]
+          },
+          {
             "hostname": "RX1",
             "interfaces": [
               {
@@ -47,7 +45,8 @@
               }
             ]
           }
-        ]
+        ],
+        "ibgp_links": [["RX3", "RX2"], ["RX2", "RX1"], ["RX1", "RX3"]]
       },
       {
         "as_number": 200,
@@ -99,15 +98,14 @@
           "areas": [
             {
               "area_id": 0,
-              "networks": ["Network3","Network4"]
+              "networks": ["Network3", "Network4"]
             }
           ]
-       	"routing_protocol":"BGP",
-        "ibgp_links" : [ ["RY3","RY2"],["RY2","RY1"],["RY1","RY3"]]
-        }
+        },
+        "ibgp_links": [["RY3", "RY2"], ["RY2", "RY1"], ["RY1", "RY3"]]
       }
-    }
-    "routing_protocol":"BGP",
-    "ebgp_links" : [["RX1"","RY1"]]
+    ],
+    "routing_protocol": "BGP",
+    "ebgp_links": [["RX1", "RY1"]]
   }
 }
