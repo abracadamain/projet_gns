@@ -81,22 +81,23 @@ if __name__ == "__main__":
     
 prefixes = "2001:1:1::/64" # peut aller jusqua 2^16 = 65535
 x = 0
+y = 1
 
-# for a in range (len(data['network']['autonomous_systems'])):
-#     routeurs = data['network']['autonomous_systems'][a]['routers']
-#     for r in routeurs :
-#         print("\nVoisins de",r['hostname'], ":")
-#         for i in r['interfaces']:
-#             print("-",i['connected'], "via",i['name'])
+for a in range (len(data['network']['autonomous_systems'])):
+    routeurs = data['network']['autonomous_systems'][a]['routers']
+    for r in routeurs :
+        print("\nVoisins de",r['hostname'], ":")
+        for i in r['interfaces']:
+            print("-",i['connected'], "via",i['name'])
 
 for a in range (len(data['network']['autonomous_systems'])):
     routeurs = data['network']['autonomous_systems'][a]['routers']
     for r in routeurs :
         for i in r['interfaces']:
             i['adr']=f"2001:1:1:{i['network']}"
-            print(f"Adresse de {r['hostname']} sur {i['name']} : {i['adr']}::{x}/64")
+            print("\n"f"Adresse de {r['hostname']} sur {i['name']} : {i['adr']}::{x}/64")
             x+=1
+        r['id'] = f"{y}.{y}.{y}.{y}"
+        y+=1
+        print(f"\nRouteur ID de {r['hostname']}= {r['id']}")
 
-
-            
-    

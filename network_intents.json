@@ -1,109 +1,111 @@
 {
-  "autonomous_systems": [
-    {
-      "as_number": 100,
-      "routing_protocol": "RIP",
-      "routers": [
-        {
-          "hostname": "RX3",
-          "interfaces": [
-            {
-              "name": "GigabitEthernet3/0",
-              "network": "Network1",
-              "connected": "RX2"
-            }
-          ]
-        },
-        {
-          "hostname": "RX2",
-          "interfaces": [
-            {
-              "name": "GigabitEthernet3/0",
-              "network": "Network1",
-              "connected": "RX1"
-            },
-            {
-              "name": "GigabitEthernet2/0",
-              "network": "Network2",
-              "connected": "RX1"
-            }
-          ]
-        },
-        {
-          "hostname": "RX1",
-          "interfaces": [
-            {
-              "name": "GigabitEthernet2/0",
-              "network": "Network2",
-              "connected": "RX2"
-            },
-            {
-              "name": "GigabitEthernet1/0",
-              "network": "interAS",
-              "connected": "RY1"
-            }
-          ]
-        }
-      ],
-      "ibgp_links": [["RX3", "RX2"], ["RX2", "RX1"], ["RX1", "RX3"]]
-    },
-    {
-      "as_number": 200,
-      "routing_protocol": "OSPF",
-      "routers": [
-        {
-          "hostname": "RY1",
-          "interfaces": [
-            {
-              "name": "GigabitEthernet1/0",
-              "network": "interAS",
-              "connected": "RX1"
-            },
-            {
-              "name": "GigabitEthernet2/0",
-              "network": "Network3",
-              "connected": "RY2"
-            }
-          ]
-        },
-        {
-          "hostname": "RY2",
-          "interfaces": [
-            {
-              "name": "GigabitEthernet2/0",
-              "network": "Network3",
-              "connected": "RY1"
-            },
-            {
-              "name": "GigabitEthernet3/0",
-              "network": "Network4",
-              "connected": "RY3"
-            }
-          ]
-        },
-        {
-          "hostname": "RY3",
-          "interfaces": [
-            {
-              "name": "GigabitEthernet3/0",
-              "network": "Network4",
-              "connected": "RY2"
-            }
-          ]
-        }
-      ],
-      "ospf_config": {
-        "process_id": 10,
-        "areas": [
+  "network": {
+    "autonomous_systems": [
+      {
+        "as_number": 100,
+        "routing_protocol": "RIP",
+        "routers": [
           {
-            "area_id": 0,
-            "networks": ["Network3", "Network4"]
+            "hostname": "RX3",
+            "interfaces": [
+              {
+                "name": "GigabitEthernet3/0",
+                "network": "1",
+                "connected": "RX2"
+              }
+            ]
+          },
+          {
+            "hostname": "RX2",
+            "interfaces": [
+              {
+                "name": "GigabitEthernet3/0",
+                "network": "1",
+                "connected": "RX3"
+              },
+              {
+                "name": "GigabitEthernet2/0",
+                "network": "2",
+                "connected": "RX1"
+              }
+            ]
+          },
+          {
+            "hostname": "RX1",
+            "interfaces": [
+              {
+                "name": "GigabitEthernet2/0",
+                "network": "2",
+                "connected": "RX2"
+              },
+              {
+                "name": "GigabitEthernet1/0",
+                "network": "5",
+                "connected": "RY1"
+              }
+            ]
           }
-        ]
+        ],
+        "ibgp_links": [["RX3", "RX2"], ["RX2", "RX1"], ["RX1", "RX3"]]
       },
-      "ibgp_links": [["RY3", "RY2"], ["RY2", "RY1"], ["RY1", "RY3"]]
-    }
-  ],
-  "routing_protocol": "BGP",
-  "ebgp_links": [["RX1", "RY1"]]
+      {
+        "as_number": 200,
+        "routing_protocol": "OSPF",
+        "routers": [
+          {
+            "hostname": "RY1",
+            "interfaces": [
+              {
+                "name": "GigabitEthernet1/0",
+                "network": "5",
+                "connected": "RX1"
+              },
+              {
+                "name": "GigabitEthernet2/0",
+                "network": "3",
+                "connected": "RY2"
+              }
+            ]
+          },
+          {
+            "hostname": "RY2",
+            "interfaces": [
+              {
+                "name": "GigabitEthernet2/0",
+                "network": "3",
+                "connected": "RY1"
+              },
+              {
+                "name": "GigabitEthernet3/0",
+                "network": "4",
+                "connected": "RY3"
+              }
+            ]
+          },
+          {
+            "hostname": "RY3",
+            "interfaces": [
+              {
+                "name": "GigabitEthernet3/0",
+                "network": "4",
+                "connected": "RY2"
+              }
+            ]
+          }
+        ],
+        "ospf_config": {
+          "process_id": 10,
+          "areas": [
+            {
+              "area_id": 0,
+              "networks": ["Network3", "Network4"]
+            }
+          ]
+        },
+        "ibgp_links": [["RY3", "RY2"], ["RY2", "RY1"], ["RY1", "RY3"]]
+      }
+    ],
+    "routing_protocol": "BGP",
+    "ebgp_links": [["RX1", "RY1"]]
+  }
 }
