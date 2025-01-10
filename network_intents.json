@@ -98,7 +98,7 @@
           "areas": [
             {
               "area_id": 0,
-              "networks": ["Network3", "Network4"]
+              "networks": ["3", "4"]
             }
           ]
         },
