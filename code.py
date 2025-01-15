@@ -100,4 +100,3 @@ for a in range (len(data['network']['autonomous_systems'])):
         r['id'] = f"{y}.{y}.{y}.{y}"
         y+=1
         print(f"\nRouteur ID de {r['hostname']}= {r['id']}")
-
