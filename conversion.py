@@ -1,3 +1,5 @@
+import json
+from gen_ip import allocate_ip_add_routeur
 # Exemple de script Python pour générer un fichier de configuration .cfg
 
 # Définition des paramètres pour chaque routeur
@@ -37,10 +39,10 @@ routeurs = [
 giga = ["GigabitEthernet1/0", "GigabitEthernet2/0", "GigabitEthernet3/0"]
 
 # Fonction pour générer la configuration d'un routeur
-def generer_configuration(routeur):
+def generer_configuration(routeur, dict_ip, routing_protocol):
     config = []
     config.append("!\n!\n!\nversion 15.2\service timestamps debug datetime msec\nservice timestamps log datetime msec")
-    config.append(f"!\nhostname {routeur['hostname']}\n!")
+    config.append(f"!\nhostname {routeur["hostname"]}\n!")
     config.append("boot-start-marker\nboot-end-marker\n!\n!\n!\nno aaa new-model\nno ip icmp rate-limit unreachable\nip cef")
     config.append("!\n!\n!\n!\n!")
     config.append("no ip domain lookup\nipv6 unicast-routing\nipv6 cef\n!\n!")
@@ -51,26 +53,25 @@ def generer_configuration(routeur):
 
     rip = 0
     ospf = 0
-    bgp = 0
-    if routeur['protocol']=="rip":
+    if routing_protocol=="RIP":
         rip = 1
-    elif routeur['protocol']=="ospf":
+    elif routing_protocol=="OSPF":
         ospf = 1
 
     # INTERFACES LOOPBACK  
-    for interface in routeur['interfaces']:
-        if interface['name'] == "Loopback0":
-            adr_lb = interface['ip']  
-            if ospf == 1:
-                area = interface['area'] 
-    config.append(f"!\ninterface Loopback0\n no ip address\n ipv6 address {adr_lb}/64\n ipv6 enable")
+    adr_lb = dict_ip['Loopback0']
+    if ospf == 1:
+        area = 0
+        process_id = routeur["hostname"][1:]
+    config.append(f"!\ninterface Loopback0\n no ip address\n ipv6 address {adr_lb}\n ipv6 enable")
     if rip == 1:
         config.append(" ipv6 rip ng enable")
     if ospf == 1:
-        config.append(f" ipv6 ospf {routeur['process-id']} area {area}")
+        config.append(" ipv6 ospf " + process_id + f" area {area}")
 
     # INTERFACE FAST ETHERNET
     config.append("!\ninterface FastEthernet0/0 \n no ip address \n duplex full")
+    #continuer d'ajouter les ip :))))))))))
     for interface in routeur['interfaces']:
         if "FastEthernet" in interface['name']:
             config.append(f" ipv6 address {interface['ip']}")
