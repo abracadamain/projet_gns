@@ -1,4 +1,5 @@
 {
+  "network" :{
     "autonomous_systems": [
       {
         "as_number": 100,
@@ -108,4 +109,5 @@
     ],
     "routing_protocol": "BGP",
     "ebgp_links": [["R11", "R21"]]
+  }
 }
