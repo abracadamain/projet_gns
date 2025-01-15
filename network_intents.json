@@ -3,6 +3,7 @@
     "autonomous_systems": [
       {
         "as_number": 100,
+        "ip_range" : "2001:1:1::/64",
         "routing_protocol": "RIP",
         "routers": [
           {
@@ -50,6 +51,7 @@
       },
       {
         "as_number": 200,
+        "ip_range" : "2001:2:2::/64",
         "routing_protocol": "OSPF",
         "routers": [
           {
