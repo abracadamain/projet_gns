@@ -7,47 +7,47 @@
         "routing_protocol": "RIP",
         "routers": [
           {
-            "hostname": "RX3",
+            "hostname": "R13",
             "interfaces": [
               {
                 "name": "GigabitEthernet3/0",
                 "network": "1",
-                "connected": "RX2"
+                "connected": "R12"
               }
             ]
           },
           {
-            "hostname": "RX2",
+            "hostname": "R12",
             "interfaces": [
               {
                 "name": "GigabitEthernet3/0",
                 "network": "1",
-                "connected": "RX3"
+                "connected": "R13"
               },
               {
                 "name": "GigabitEthernet2/0",
                 "network": "2",
-                "connected": "RX1"
+                "connected": "R11"
               }
             ]
           },
           {
-            "hostname": "RX1",
+            "hostname": "R11",
             "interfaces": [
               {
                 "name": "GigabitEthernet2/0",
                 "network": "2",
-                "connected": "RX2"
+                "connected": "R12"
               },
               {
                 "name": "GigabitEthernet1/0",
                 "network": "5",
-                "connected": "RY1"
+                "connected": "R21"
               }
             ]
           }
         ],
-        "ibgp_links": [["RX3", "RX2"], ["RX2", "RX1"], ["RX1", "RX3"]]
+        "ibgp_links": [["R13", "R12"], ["R12", "R11"], ["R11", "R13"]]
       },
       {
         "as_number": 200,
@@ -55,42 +55,42 @@
         "routing_protocol": "OSPF",
         "routers": [
           {
-            "hostname": "RY1",
+            "hostname": "R21",
             "interfaces": [
               {
                 "name": "GigabitEthernet1/0",
                 "network": "5",
-                "connected": "RX1"
+                "connected": "R11"
               },
               {
                 "name": "GigabitEthernet2/0",
                 "network": "3",
-                "connected": "RY2"
+                "connected": "R22"
               }
             ]
           },
           {
-            "hostname": "RY2",
+            "hostname": "R22",
             "interfaces": [
               {
                 "name": "GigabitEthernet2/0",
                 "network": "3",
-                "connected": "RY1"
+                "connected": "R21"
               },
               {
                 "name": "GigabitEthernet3/0",
                 "network": "4",
-                "connected": "RY3"
+                "connected": "R23"
               }
             ]
           },
           {
-            "hostname": "RY3",
+            "hostname": "R23",
             "interfaces": [
               {
                 "name": "GigabitEthernet3/0",
                 "network": "4",
-                "connected": "RY2"
+                "connected": "R22"
               }
             ]
           }
@@ -104,10 +104,10 @@
             }
           ]
         },
-        "ibgp_links": [["RY3", "RY2"], ["RY2", "RY1"], ["RY1", "RY3"]]
+        "ibgp_links": [["R23", "R22"], ["R22", "R21"], ["R21", "R23"]]
       }
     ],
     "routing_protocol": "BGP",
-    "ebgp_links": [["RX1", "RY1"]]
+    "ebgp_links": [["R11", "R21"]]
   }
 }
