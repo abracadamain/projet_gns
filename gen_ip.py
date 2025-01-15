@@ -8,6 +8,7 @@ def allocate_ip_add_routeur(f_intents, routeur_hostname) :
 
     dict_ip = {}
     fin = False
+    data = data["network"]
     for i in range (len(data["autonomous_systems"])) :
         aut_sys = data["autonomous_systems"][i]
         routers = aut_sys["routers"]
@@ -27,5 +28,5 @@ def allocate_ip_add_routeur(f_intents, routeur_hostname) :
     
     return dict_ip
                     
-#allocate_ip_add_routeur("network_intents.json", "R12")
+#allocate_ip_add_routeur("network_intents.json", "R11")
                 
