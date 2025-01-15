@@ -30,22 +30,25 @@ def generate_ibgp_config(router: dict, as_data: dict) -> str:
             else:
                 neighbor_name = link[1]
             neighbor_router = next(r for r in as_data["routers"] if r["hostname"] == neighbor_name)
-            for iface in neighbor_router["interfaces"]:
+            '''for iface in neighbor_router["interfaces"]:
                 if iface["name"] == "Loopback0":
                     loopback = iface
                     break
-        ibgp_config["bgp"]["neighbors"].append({
-            "neighbor_ip": loopback.get("ip_address", ""),
-            "remote_as": as_data["as_number"],
-            "update_source": "Loopback0",
-            "neighbor_router_id": neighbor_name
-        })
+            '''
+            ibgp_config["bgp"]["neighbors"].append({
+                "neighbor_name": neighbor_name, 
+                #"neighbor_ip": loopback.get("ip_address", ""),
+                "remote_as": as_data["as_number"],
+                #"update_source": "Loopback0",
+            
+            })
 
     return ibgp_config
 data=extraire_json.read_intent_file("network_intents.json")
 as_data=extraire_json.extract_as_data(data,100)
 router=extraire_json.extract_router_data(as_data, "R11") 
 ibgp_config = generate_ibgp_config(router, as_data)
+print(ibgp_config)
 '''
 as_data = {
     "as_number": 100,
