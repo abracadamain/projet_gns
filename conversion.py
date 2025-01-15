@@ -12,19 +12,25 @@ routeurs = [
         "routes": [
             {"destination": "0.0.0.0", "mask": "0.0.0.0", "next_hop": "192.168.1.254"}
         ],
-        "protocol" : "rip"
+        "protocol" : "rip",
+        "routeur-id" : "1.1.1.1",
+        "AS":"11",
+        "connected":"Routeur2"
     },
     {
         "hostname": "Routeur2",
         "interfaces": [
-            {"name": "GigabitEthernet1/0", "ip": "2001:1:1:1::2", "area":"0", "process-id":"1"},
-            {"name": "GigabitEthernet2/0", "ip": "2001:1:1:2::2", "area":"3", "process-id":"2"},
-            {"name" : "Loopback0", "ip" : "2002:2:2:2::2", "area":"55", "process-id":"410"}
+            {"name": "GigabitEthernet1/0", "ip": "2001:1:1:1::2", "area":"0"},
+            {"name": "GigabitEthernet2/0", "ip": "2001:1:1:2::2", "area":"1"},
+            {"name" : "Loopback0", "ip" : "2002:2:2:2::2", "area":"2"}
         ],
         "routes": [
             {"destination": "0.0.0.0", "mask": "0.0.0.0", "next_hop": "192.168.2.254"}
         ],
-        "protocol" : "ospf"
+        "protocol" : "ospf",
+        "process-id" : "2",
+        "routeur-id" : "2.2.2.2",
+        "AS":"22"
     }
 ]
 
@@ -45,6 +51,7 @@ def generer_configuration(routeur):
 
     rip = 0
     ospf = 0
+    bgp = 0
     if routeur['protocol']=="rip":
         rip = 1
     elif routeur['protocol']=="ospf":
@@ -55,13 +62,12 @@ def generer_configuration(routeur):
         if interface['name'] == "Loopback0":
             adr_lb = interface['ip']  
             if ospf == 1:
-                area = interface['area']  
-                pro_id = interface ['process-id']
+                area = interface['area'] 
     config.append(f"!\ninterface Loopback0\n no ip address\n ipv6 address {adr_lb}/64\n ipv6 enable")
     if rip == 1:
         config.append(" ipv6 rip ng enable")
     if ospf == 1:
-        config.append(f" ipv6 ospf {pro_id} area {area}")
+        config.append(f" ipv6 ospf {routeur['process-id']} area {area}")
 
     # INTERFACE FAST ETHERNET
     config.append("!\ninterface FastEthernet0/0 \n no ip address \n duplex full")
@@ -90,13 +96,37 @@ def generer_configuration(routeur):
                 for interface in routeur['interfaces']:
                     if interface['name'] == i:
                         area = interface['area']
-                        pro_id = interface['process-id']
-                        config.append(f" ipv6 ospf {pro_id} area {area}")
+                        config.append(f" ipv6 ospf {routeur['process-id']} area {area}")
         else:
             config.append(f"!\ninterface {i}\n no ip adress \n shutdown \n negotiation auto")
 
-    # for route in routeur['routes']:
-    #     config.append(f"ip route {route['destination']} {route['mask']} {route['next_hop']}")
+    return "\n".join(config)
+
+def ajouter_bgp(config,routeurs):
+    # BGP
+    config.append("!\n!")
+    rt_id = routeur['routeur-id']
+    as_number = routeur['AS']
+    config.append(f"routeur bgp {as_number}\n bgp router-id {rt_id}\n bgp log-neighbor-changes\n no bgp default ipv4-unicast")
+    config.append(" NEIGHBOR @IP REMOTE-AS AS_N°")
+    config.append("!\naddress-family ipv4\nexit-address-family\n!")
+    config.append("address-family ipv6\n NETWORK ::/64\n NEIGHBOR @IP ACTVATE \nexit-address-family")
+
+    # FIN
+    config.append("!\nip forward-protocol nd\n!\n!\nno ip http server\nno ip http secure-server\n!")
+
+    if rip == 1:
+        config.append("ipv6 router rip ng\n redistribute connected")
+    if ospf == 1:
+        config.append(f"ipv6 router ospf {routeur['process-id']} \n router-id {routeur['routeur-id']}")
+        
+    config.append("!\n!\n!\n!\n!")
+    config.append("control-plane\n!\n!")
+    config.append("line con 0\n exec-timeout 0 0\n privilege level 15\n logging synchronous\n stopbits 1")
+    config.append("line aux 0\n exec-timeout 0 0\nprivilege level 15\nlogging synchronous\n stopbits 1")
+    config.append("line vty 0 4\n login")
+    config.append("!\n!\nend")
+
     config.append("!")
     return "\n".join(config)
 
