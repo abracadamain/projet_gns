@@ -28,7 +28,7 @@ def extract_as_data(intent_data: dict, as_number: int) -> dict:
         if as_data["as_number"] == as_number:
             return as_data
     return {}
-def extract_router_data(as_data: dict) -> list:
+def extract_router_data(as_data: dict,hostname: str) -> list:
     """
     Extracts all router details from the AS data.
 
@@ -38,4 +38,7 @@ def extract_router_data(as_data: dict) -> list:
     Returns:
         list: A list of router dictionaries, or an empty list if no routers are found.
     """
-    return as_data.get("routers", [])
+    for router in as_data.get("routers", []):
+        if router["hostname"] == hostname:
+            return router
+    return {} 

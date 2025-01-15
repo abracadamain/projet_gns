@@ -59,13 +59,18 @@ def generate_ebgp_config(router: dict, network_data: dict) -> dict:
 
             # Add neighbor configuration
             ebgp_config["bgp"]["neighbors"].append({
-                "ip_address": neighbor_interface["ip_address"],
+                "neighbor_name": neighbor_name, 
+                "ip_address": neighbor_interface.get("ip_address", ""),
                 "remote_as": neighbor_as
+                
             })
 
     return ebgp_config
-'''data=extraire_json.read_intent_file("network_intents.json")
-router=extraire_json.extract_router_data()'''
+data=extraire_json.read_intent_file("network_intents.json")
+as_data=extraire_json.extract_as_data(data,200)
+router=extraire_json.extract_router_data(as_data, "R21") 
+ebgp_config = generate_ebgp_config(router, data)
+print(ebgp_config)
 '''network_data = {
     "network": {
         "autonomous_systems": [
