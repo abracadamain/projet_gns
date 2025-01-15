@@ -1,3 +1,5 @@
+import extraire_json
+import json
 def generate_ebgp_config(router: dict, network_data: dict) -> dict:
     """
     Generates eBGP configuration for a router in a structured dictionary format.
@@ -62,3 +64,49 @@ def generate_ebgp_config(router: dict, network_data: dict) -> dict:
             })
 
     return ebgp_config
+'''data=extraire_json.read_intent_file("network_intents.json")
+router=extraire_json.extract_router_data()'''
+'''network_data = {
+    "network": {
+        "autonomous_systems": [
+            {
+                "as_number": 100,
+                "routers": [
+                    {
+                        "hostname": "R11",
+                        "interfaces": [
+                            {"name": "GigabitEthernet1/0", "ip_address": "2001:1:1::1", "network": "2001:1:1::/64", "connected": "R21"},
+                            {"name": "Loopback0", "ip_address": "2001:100::1", "network": "2001:100::1/128", "connected": None}
+                        ]
+                    }
+                ]
+            },
+            {
+                "as_number": 200,
+                "routers": [
+                    {
+                        "hostname": "R21",
+                        "interfaces": [
+                            {"name": "GigabitEthernet1/0", "ip_address": "2001:2:2::1", "network": "2001:2:2::/64", "connected": "R11"},
+                            {"name": "Loopback0", "ip_address": "2001:200::1", "network": "2001:200::1/128", "connected": None}
+                        ]
+                    }
+                ]
+            }
+        ],
+        "ebgp_links": [
+            ["R11", "R21"]
+        ]
+    }
+}
+router = {
+    "hostname": "R11",
+    "interfaces": [
+        {"name": "GigabitEthernet1/0", "ip_address": "2001:1:1::1", "network": "2001:1:1::/64", "connected": "R21"},
+        {"name": "Loopback0", "ip_address": "2001:100::1", "network": "2001:100::1/128", "connected": None}
+    ]
+}
+# 调用 generate_ebgp_config 函数
+ebgp_config = generate_ebgp_config(router, network_data)
+print(ebgp_config)
+'''
