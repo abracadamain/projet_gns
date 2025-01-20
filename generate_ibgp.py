@@ -29,10 +29,12 @@ def generate_ibgp_config(router: dict, as_data: dict) -> str:
                 neighbor_name = link[0]
             else:
                 neighbor_name = link[1]
-            neighbor_router = next(r for r in as_data["routers"] if r["hostname"] == neighbor_name)
-            '''for iface in neighbor_router["interfaces"]:
-                if iface["name"] == "Loopback0":
-                    loopback = iface
+            routers = as_data["routers"]
+            filtered_routers = filter(lambda r: r["hostname"] == neighbor_name, routers)
+            neighbor_router = next(filtered_routers, None)
+            '''for interface in neighbor_router["interfaces"]:
+                if interface["name"] == "Loopback0":
+                    loopback = interface
                     break
             '''
             ibgp_config["bgp"]["neighbors"].append({
