@@ -36,36 +36,43 @@ def generate_ebgp_config(router: dict, network_data: dict) -> dict:
                 neighbor_name = link[0]
             else:
                 neighbor_name = link[1]
-
-            # Find the neighbor router's details
-            neighbor_router = next(
-                r for as_data in network_data["network"]["autonomous_systems"]
-                for r in as_data["routers"]
-                if r["hostname"] == neighbor_name
-            )
+            
+            #find the neighboring routers
+            autonomous_systems = network_data["network"]["autonomous_systems"]
+            all_routers = []
+            for as_data in autonomous_systems:
+                all_routers.extend(as_data["routers"])
+            filtered_routers = filter(lambda r: r["hostname"] == neighbor_name, all_routers)
+            neighbor_router = next(filtered_routers, None)
 
             # Find the neighbor's interface connected to this router
-            neighbor_interface = next(
-                iface for iface in neighbor_router["interfaces"]
-                if iface["connected"] == router["hostname"]
-            )
-
+            interface=neighbor_router["interfaces"]
+            filtered_interface = filter(lambda interface: interface["connected"] == router["hostname"],interface)
+            neighbor_interface = next(filtered_interface, None)
             # Find the AS number of the neighbor
-            neighbor_as = next(
-                as_data["as_number"]
-                for as_data in network_data["network"]["autonomous_systems"]
-                if neighbor_name in [r["hostname"] for r in as_data["routers"]]
-            )
-
+            autonomous_systems = network_data["network"]["autonomous_systems"]
+            neighbor_as = None
+            for as_data in autonomous_systems:
+                router_hostnames = []
+                for router in as_data["routers"]:
+                    router_hostnames.append(router["hostname"])
+                if neighbor_name in router_hostnames:
+                    neighbor_as = as_data["as_number"]
+                    break
             # Add neighbor configuration
             ebgp_config["bgp"]["neighbors"].append({
-                "ip_address": neighbor_interface["ip_address"],
+                "neighbor_name": neighbor_name, 
+                "ip_address": neighbor_interface.get("ip_address", ""),
                 "remote_as": neighbor_as
+                
             })
 
     return ebgp_config
-'''data=extraire_json.read_intent_file("network_intents.json")
-router=extraire_json.extract_router_data()'''
+data=extraire_json.read_intent_file("network_intents.json")
+as_data=extraire_json.extract_as_data(data,200)
+router=extraire_json.extract_router_data(as_data, "R21") 
+ebgp_config = generate_ebgp_config(router, data)
+print(ebgp_config)
 '''network_data = {
     "network": {
         "autonomous_systems": [
