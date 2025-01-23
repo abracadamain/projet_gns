@@ -1,5 +1,7 @@
 import json
 from gen_ip import allocate_ip_add_routeur
+from generate_ibgp import generate_ibgp_config
+from generate_ebgp import generate_ebgp_config
 # Exemple de script Python pour générer un fichier de configuration .cfg
 
 # Définition des paramètres pour chaque routeur
@@ -100,25 +102,32 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
         else:
             config.append(f"!\ninterface {i}\n no ip adress \n shutdown \n negotiation auto")
 
-    return "\n".join(config)
+    
+    return config
+    #return "\n".join(config)
 
-def ajouter_bgp(config,routeurs):
+def ajouter_bgp(config, routeur, dict_ibgp, dict_ebgp, as_number):
+    # ajouter les neighbors avec dict_ibgp et dict_ebgp
     # BGP
     config.append("!\n!")
-    rt_id = routeur['routeur-id']
-    as_number = routeur['AS']
+    num = routeur['hostname'][1:]
+    rt_id = num + "." + num + "." + num + "." + num
     config.append(f"routeur bgp {as_number}\n bgp router-id {rt_id}\n bgp log-neighbor-changes\n no bgp default ipv4-unicast")
     config.append(" NEIGHBOR @IP REMOTE-AS AS_N°")
     config.append("!\naddress-family ipv4\nexit-address-family\n!")
     config.append("address-family ipv6\n NETWORK ::/64\n NEIGHBOR @IP ACTVATE \nexit-address-family")
+    return config
 
+def gen_fin_config(config, routeur, routing_protocol):
     # FIN
     config.append("!\nip forward-protocol nd\n!\n!\nno ip http server\nno ip http secure-server\n!")
 
-    if rip == 1:
+    if routing_protocol == "RIP":
         config.append("ipv6 router rip ng\n redistribute connected")
-    if ospf == 1:
-        config.append(f"ipv6 router ospf {routeur['process-id']} \n router-id {routeur['routeur-id']}")
+    if routing_protocol == "OSPF":
+        process_id = routeur["hostname"][1:]
+        rt_id = process_id + "." + process_id + "." + process_id + "." + process_id
+        config.append(f"ipv6 router ospf {process_id} \n router-id {rt_id}")
         
     config.append("!\n!\n!\n!\n!")
     config.append("control-plane\n!\n!")
@@ -145,7 +154,11 @@ for ausys in data["network"]["autonomous_systems"] :
     for routeur in ausys["routers"] :
        dict_ip = allocate_ip_add_routeur("network_intents.json", routeur["hostname"])
        filename = f"test {routeur['hostname']}.cfg"
+       dict_ibgp = generate_ibgp_config(routeur, ausys)
+       dict_ebgp = generate_ebgp_config(routeur, data)
        with open(filename, "w") as file:
-           file.write(generer_configuration(routeur, dict_ip, ausys["routing_protocol"]))
+           conf = generer_configuration(routeur, dict_ip, ausys["routing_protocol"])
+           conf = ajouter_bgp(conf, routeur, dict_ibgp, dict_ebgp, ausys["as_number"])
+           #file.write(gen_fin_config(conf, routeur, ausys["routing_protocol"]))
 
 print("Fichiers de configuration générés avec succès.")
