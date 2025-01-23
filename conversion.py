@@ -40,6 +40,7 @@ giga = ["GigabitEthernet1/0", "GigabitEthernet2/0", "GigabitEthernet3/0"]
 
 # Fonction pour générer la configuration d'un routeur
 def generer_configuration(routeur, dict_ip, routing_protocol):
+    giga = ["GigabitEthernet1/0", "GigabitEthernet2/0", "GigabitEthernet3/0"]
     config = []
     config.append("!\n!\n!\nversion 15.2\service timestamps debug datetime msec\nservice timestamps log datetime msec")
     config.append(f"!\nhostname {routeur["hostname"]}\n!")
@@ -71,7 +72,6 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
 
     # INTERFACE FAST ETHERNET
     config.append("!\ninterface FastEthernet0/0 \n no ip address \n duplex full")
-    #continuer d'ajouter les ip :))))))))))
     for interface in routeur['interfaces']:
         if "FastEthernet" in interface['name']:
             config.append(f" ipv6 address {interface['ip']}")
@@ -87,17 +87,16 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
         if i in int :
             config.append(f"!\ninterface {i}")
             config.append(f" no ip address\n negotiation auto")
-            for interface in routeur['interfaces']:
-                if interface['name'] == i:
-                    adrip = interface['ip']
+            adrip = dict_ip[i]
             config.append(f" ipv6 address {adrip}/64 \n ipv6 enable")
             if rip == 1:
                 config.append(" ipv6 rip ng enable")
             if ospf == 1:
                 for interface in routeur['interfaces']:
                     if interface['name'] == i:
-                        area = interface['area']
-                        config.append(f" ipv6 ospf {routeur['process-id']} area {area}")
+                        area = 0 #on met la même area pour toutes les interfaces de tous les routeurs
+                        process_id = routeur["hostname"][1:] 
+                        config.append(f" ipv6 ospf {process_id} area {area}")
         else:
             config.append(f"!\ninterface {i}\n no ip adress \n shutdown \n negotiation auto")
 
@@ -132,9 +131,21 @@ def ajouter_bgp(config,routeurs):
     return "\n".join(config)
 
 # Génération des fichiers de configuration
+'''
 for routeur in routeurs:
     filename = f"{routeur['hostname']}.cfg"
     with open(filename, "w") as file:
         file.write(generer_configuration(routeur))
+'''
+
+with open("network_intents.json", "r") as f :
+    data = json.load(f)
+
+for ausys in data["network"]["autonomous_systems"] :
+    for routeur in ausys["routers"] :
+       dict_ip = allocate_ip_add_routeur("network_intents.json", routeur["hostname"])
+       filename = f"test {routeur['hostname']}.cfg"
+       with open(filename, "w") as file:
+           file.write(generer_configuration(routeur, dict_ip, ausys["routing_protocol"]))
 
 print("Fichiers de configuration générés avec succès.")

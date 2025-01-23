@@ -21,12 +21,12 @@ def allocate_ip_add_routeur(f_intents, routeur_hostname) :
                     interface = router["interfaces"][k]
                     adresse = aut_sys["ip_range"][:-4] + interface["network"] + ":" + num_hostname + "/64"
                     dict_ip[interface["name"]] = adresse
-                break
                 fin = True
+                break
         if fin :
             break # On a trouvé le routeur
     
     return dict_ip
                     
-#allocate_ip_add_routeur("network_intents.json", "R11")
+#print(allocate_ip_add_routeur("network_intents.json", "R11"))
                 
