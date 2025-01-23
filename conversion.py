@@ -42,7 +42,7 @@ giga = ["GigabitEthernet1/0", "GigabitEthernet2/0", "GigabitEthernet3/0"]
 def generer_configuration(routeur, dict_ip, routing_protocol):
     giga = ["GigabitEthernet1/0", "GigabitEthernet2/0", "GigabitEthernet3/0"]
     config = []
-    config.append("!\n!\n!\nversion 15.2\service timestamps debug datetime msec\nservice timestamps log datetime msec")
+    config.append("!\n!\n!\nversion 15.2\nservice timestamps debug datetime msec\nservice timestamps log datetime msec")
     config.append(f"!\nhostname {routeur["hostname"]}\n!")
     config.append("boot-start-marker\nboot-end-marker\n!\n!\n!\nno aaa new-model\nno ip icmp rate-limit unreachable\nip cef")
     config.append("!\n!\n!\n!\n!")
@@ -74,7 +74,7 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
     config.append("!\ninterface FastEthernet0/0 \n no ip address \n duplex full")
     for interface in routeur['interfaces']:
         if "FastEthernet" in interface['name']:
-            config.append(f" ipv6 address {interface['ip']}")
+            config.append(f" ipv6 address {dict_ip[interface['name']]}")
     config.append(" ipv6 enable")
     if rip == 1:
         config.append(" ipv6 rip ng enable")
@@ -88,7 +88,7 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
             config.append(f"!\ninterface {i}")
             config.append(f" no ip address\n negotiation auto")
             adrip = dict_ip[i]
-            config.append(f" ipv6 address {adrip}/64 \n ipv6 enable")
+            config.append(f" ipv6 address {adrip} \n ipv6 enable")
             if rip == 1:
                 config.append(" ipv6 rip ng enable")
             if ospf == 1:
