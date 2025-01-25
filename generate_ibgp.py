@@ -1,4 +1,6 @@
 import extraire_json
+import json
+from gen_ip import allocate_ip_add_routeur
 def generate_ibgp_config(router: dict, as_data: dict) -> str:
     """
     Generates iBGP configuration for a router within an AS.
@@ -20,7 +22,7 @@ def generate_ibgp_config(router: dict, as_data: dict) -> str:
             "neighbors": []
         }
     }
-
+    router_ip_info = allocate_ip_add_routeur("network_intents.json", router["hostname"])
     # Configure iBGP neighbors
     for link in as_data.get("ibgp_links", []):
         if router["hostname"] in link:
@@ -29,19 +31,28 @@ def generate_ibgp_config(router: dict, as_data: dict) -> str:
                 neighbor_name = link[0]
             else:
                 neighbor_name = link[1]
+            
             routers = as_data["routers"]
             filtered_routers = filter(lambda r: r["hostname"] == neighbor_name, routers)
             neighbor_router = next(filtered_routers, None)
-            '''for interface in neighbor_router["interfaces"]:
-                if interface["name"] == "Loopback0":
-                    loopback = interface
+            
+            interface_name = None
+            for interface in router["interfaces"]:
+                if interface["connected"]==neighbor_name:
+                    interface_name=interface["name"] 
                     break
-            '''
+            if not interface_name:
+                filtered_keys = [key for key in neighbor_ip_info.keys() if key != 'Loopback0']
+                interface_name=filtered_keys[0]
+            neighbor_ip_info=allocate_ip_add_routeur("network_intents.json",neighbor_name)    
+                
+            
+            
             ibgp_config["bgp"]["neighbors"].append({
                 "neighbor_name": neighbor_name, 
-                #"neighbor_ip": loopback.get("ip_address", ""),
+                "neighbor_ip":neighbor_ip_info[interface_name],
                 "remote_as": as_data["as_number"],
-                #"update_source": "Loopback0",
+                "update_source": neighbor_ip_info["Loopback0"],
             
             })
 
@@ -51,43 +62,3 @@ as_data=extraire_json.extract_as_data(data,100)
 router=extraire_json.extract_router_data(as_data, "R11") 
 ibgp_config = generate_ibgp_config(router, as_data)
 print(ibgp_config)
-'''
-as_data = {
-    "as_number": 100,
-    "routers": [
-        {
-            "hostname": "R11",
-            "interfaces": [
-                {"name": "GigabitEthernet1/0", "ip_address": "2001:db8:1::1", "network": "2001:db8:1::/64", "connected": "R12"},
-                {"name": "Loopback0", "ip_address": "2001:db8:100::1", "network": "2001:db8:100::1/128", "connected": None}
-            ]
-        },
-        {
-            "hostname": "R12",
-            "interfaces": [
-                {"name": "GigabitEthernet1/0", "ip_address": "2001:db8:1::2", "network": "2001:db8:1::/64", "connected": "R11"},
-                {"name": "GigabitEthernet2/0", "ip_address": "2001:db8:2::1", "network": "2001:db8:2::/64", "connected": "R13"},
-                {"name": "Loopback0", "ip_address": "2001:db8:100::2", "network": "2001:db8:100::2/128", "connected": None}
-            ]
-        },
-        {
-            "hostname": "R13",
-            "interfaces": [
-                {"name": "GigabitEthernet2/0", "ip_address": "2001:db8:2::2", "network": "2001:db8:2::/64", "connected": "R12"},
-                {"name": "Loopback0", "ip_address": "2001:db8:100::3", "network": "2001:db8:100::3/128", "connected": None}
-            ]
-        }
-    ],
-    "ibgp_links": [["R11", "R12"], ["R12", "R13"], ["R11", "R13"]]
-}
-router = {
-    "hostname": "R11",
-    "interfaces": [
-        {"name": "GigabitEthernet1/0", "ip_address": "2001:db8:1::1", "network": "2001:db8:1::/64", "connected": "R12"},
-        {"name": "Loopback0", "ip_address": "2001:db8:100::1", "network": "2001:db8:100::1/128", "connected": None}
-    ]
-}
-# 调用 generate_ibgp_config 函数
-ibgp_config = generate_ibgp_config(router, as_data)
-print(ibgp_config)
-'''
