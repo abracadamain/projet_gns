@@ -2,6 +2,8 @@ import json
 from gen_ip import allocate_ip_add_routeur
 from generate_ibgp import generate_ibgp_config
 from generate_ebgp import generate_ebgp_config
+from itertools import chain
+from extraire_json import read_intent_file
 # Exemple de script Python pour générer un fichier de configuration .cfg
 
 # Définition des paramètres pour chaque routeur
@@ -106,16 +108,25 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
     return config
     #return "\n".join(config)
 
-def ajouter_bgp(config, routeur, dict_ibgp, dict_ebgp, as_number):
+def ajouter_bgp(config, dict_ibgp, dict_ebgp):
     # ajouter les neighbors avec dict_ibgp et dict_ebgp
     # BGP
     config.append("!\n!")
-    num = routeur['hostname'][1:]
+    num = dict_ibgp['router'][1:]
     rt_id = num + "." + num + "." + num + "." + num
+    as_number = dict_ibgp['bgp']['as_number']
     config.append(f"routeur bgp {as_number}\n bgp router-id {rt_id}\n bgp log-neighbor-changes\n no bgp default ipv4-unicast")
-    config.append(" NEIGHBOR @IP REMOTE-AS AS_N°")
-    config.append("!\naddress-family ipv4\nexit-address-family\n!")
-    config.append("address-family ipv6\n NETWORK ::/64\n NEIGHBOR @IP ACTVATE \nexit-address-family")
+    for neighbor in chain(dict_ibgp['bgp']['neighbors'], dict_ebgp['bgp']['neighbors']):
+        n_ip = neighbor['neighbor_ip'][:-3] 
+        n_as = neighbor['remote_as']
+        config.append(f" neighbor {n_ip} remote-as {n_as}")
+    config.append(" !\n address-family ipv4\n exit-address-family\n !")
+    config.append(" address-family ipv6")
+    for neighbor in chain(dict_ibgp['bgp']['neighbors'], dict_ebgp['bgp']['neighbors']):
+        n_ip = neighbor['neighbor_ip'][:-3]
+        config.append(f"  network {n_ip[:-2]}/64")
+        config.append(f"  neighbor {n_ip} activate")
+    config.append(" exit-address-family")
     return config
 
 def gen_fin_config(config, routeur, routing_protocol):
@@ -145,10 +156,12 @@ for routeur in routeurs:
     filename = f"{routeur['hostname']}.cfg"
     with open(filename, "w") as file:
         file.write(generer_configuration(routeur))
-'''
+
 
 with open("network_intents.json", "r") as f :
     data = json.load(f)
+    '''
+data = read_intent_file("network_intents.json")
 
 for ausys in data["network"]["autonomous_systems"] :
     for routeur in ausys["routers"] :
@@ -158,7 +171,7 @@ for ausys in data["network"]["autonomous_systems"] :
        dict_ebgp = generate_ebgp_config(routeur, data)
        with open(filename, "w") as file:
            conf = generer_configuration(routeur, dict_ip, ausys["routing_protocol"])
-           conf = ajouter_bgp(conf, routeur, dict_ibgp, dict_ebgp, ausys["as_number"])
-           #file.write(gen_fin_config(conf, routeur, ausys["routing_protocol"]))
+           conf = ajouter_bgp(conf, dict_ibgp, dict_ebgp)
+           file.write(gen_fin_config(conf, routeur, ausys["routing_protocol"]))
 
 print("Fichiers de configuration générés avec succès.")
