@@ -12,7 +12,6 @@ def generate_ibgp_config(router: dict, as_data: dict) -> str:
     Returns:
         str: iBGP configuration as a string.
     """
-    config_lines = []
     as_number = as_data["as_number"] 
 
     ibgp_config = {
@@ -22,7 +21,6 @@ def generate_ibgp_config(router: dict, as_data: dict) -> str:
             "neighbors": []
         }
     }
-    router_ip_info = allocate_ip_add_routeur("network_intents.json", router["hostname"])
     # Configure iBGP neighbors
     for link in as_data.get("ibgp_links", []):
         if router["hostname"] in link:
@@ -32,22 +30,11 @@ def generate_ibgp_config(router: dict, as_data: dict) -> str:
             else:
                 neighbor_name = link[1]
             
-            routers = as_data["routers"]
-            filtered_routers = filter(lambda r: r["hostname"] == neighbor_name, routers)
-            neighbor_router = next(filtered_routers, None)
-            
-            interface_name = None
-            for interface in router["interfaces"]:
-                if interface["connected"]==neighbor_name:
-                    interface_name=interface["name"] 
-                    break
-            if not interface_name:
-                filtered_keys = [key for key in neighbor_ip_info.keys() if key != 'Loopback0']
-                interface_name=filtered_keys[0]
             neighbor_ip_info=allocate_ip_add_routeur("network_intents.json",neighbor_name)    
+
+            filtered_keys = [key for key in neighbor_ip_info.keys() if key != 'Loopback0']
+            interface_name=filtered_keys[0]
                 
-            
-            
             ibgp_config["bgp"]["neighbors"].append({
                 "neighbor_name": neighbor_name, 
                 "neighbor_ip":neighbor_ip_info[interface_name],

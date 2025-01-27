@@ -28,4 +28,4 @@ def allocate_ip_add_routeur(f_intents, routeur_hostname) :
 
     return dict_ip
                     
-print(allocate_ip_add_routeur("network_intents.json", "R11"))
+#print(allocate_ip_add_routeur("network_intents.json", "R11"))

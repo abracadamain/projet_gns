@@ -30,8 +30,6 @@ def generate_ebgp_config(router: dict, network_data: dict) -> dict:
         }
     }
 
-    router_ip_info = allocate_ip_add_routeur("network_intents.json", router["hostname"])
-
     # Process eBGP links
     for link in network_data["network"].get("ebgp_links", []):
         if router["hostname"] not in link:
@@ -91,7 +89,7 @@ def generate_ebgp_config(router: dict, network_data: dict) -> dict:
         # Add neighbor configuration
         ebgp_config["bgp"]["neighbors"].append({
             "neighbor_name": neighbor_name,
-            "ip_address": neighbor_ip_info[neighbor_interface["name"]],
+            "neighbor_ip": neighbor_ip_info[neighbor_interface["name"]],
             "remote_as": neighbor_as
         })
 
