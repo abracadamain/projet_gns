@@ -2,7 +2,7 @@
   "network" :{
     "autonomous_systems": [
       {
-        "as_number": 100,
+        "as_number": "100",
         "ip_range" : "2001:1:1::/64",
         "routing_protocol": "RIP",
         "routers": [
@@ -50,7 +50,7 @@
         "ibgp_links": [["R13", "R12"], ["R12", "R11"], ["R11", "R13"]]
       },
       {
-        "as_number": 200,
+        "as_number": "200",
         "ip_range" : "2001:2:2::/64",
         "routing_protocol": "OSPF",
         "routers": [
@@ -95,15 +95,6 @@
             ]
           }
         ],
-        "ospf_config": {
-          "process_id": 10,
-          "areas": [
-            {
-              "area_id": 0,
-              "networks": ["3", "4"]
-            }
-          ]
-        },
         "ibgp_links": [["R23", "R22"], ["R22", "R21"], ["R21", "R23"]]
       }
     ],
