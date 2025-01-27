@@ -19,7 +19,7 @@ def allocate_ip_add_routeur(f_intents, routeur_hostname) :
                 dict_ip["Loopback0"] = aut_sys["ip_range"][:-3] + num_hostname + "/128"
                 for k in range(len(router["interfaces"])) :
                     interface = router["interfaces"][k]
-                    adresse = aut_sys["ip_range"][:-4] + interface["network"] + ":" + num_hostname + "/64"
+                    adresse = aut_sys["ip_range"][:-4] + interface["network"] + "::" + num_hostname + "/64"
                     dict_ip[interface["name"]] = adresse
                 fin = True
                 break
@@ -28,4 +28,4 @@ def allocate_ip_add_routeur(f_intents, routeur_hostname) :
 
     return dict_ip
                     
-#print(allocate_ip_add_routeur("network_intents.json", "R11"))
+print(allocate_ip_add_routeur("network_intents.json", "R11"))
