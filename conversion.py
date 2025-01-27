@@ -4,6 +4,7 @@ from generate_ibgp import generate_ibgp_config
 from generate_ebgp import generate_ebgp_config
 from itertools import chain
 from extraire_json import read_intent_file
+from gen_network import gen_address_network
 # Exemple de script Python pour générer un fichier de configuration .cfg
 
 # Définition des paramètres pour chaque routeur
@@ -111,6 +112,7 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
 def ajouter_bgp(config, dict_ibgp, dict_ebgp):
     # ajouter les neighbors avec dict_ibgp et dict_ebgp
     # BGP
+    address_network = gen_address_network()
     config.append("!\n!")
     num = dict_ibgp['router'][1:]
     rt_id = num + "." + num + "." + num + "." + num
@@ -122,9 +124,9 @@ def ajouter_bgp(config, dict_ibgp, dict_ebgp):
         config.append(f" neighbor {n_ip} remote-as {n_as}")
     config.append(" !\n address-family ipv4\n exit-address-family\n !")
     config.append(" address-family ipv6")
-    for neighbor in chain(dict_ibgp['bgp']['neighbors'], dict_ebgp['bgp']['neighbors']):
-        n_ip = neighbor['neighbor_ip'][:-3]
-        config.append(f"  network {n_ip[:-2]}/64")
+    for add in address_network:
+        config.append(f"  network {add}/64")
+    for neighbor in chain(dict_ibgp['bgp']['neighbors'], dict_ebgp['bgp']['neighbors']): 
         config.append(f"  neighbor {n_ip} activate")
     config.append(" exit-address-family")
     return config

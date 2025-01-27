@@ -15,6 +15,4 @@ def gen_address_network():
                     add_net = dict_ip[address][:-5]
                     if add_net not in address_network:
                         address_network.append(add_net)
-    print(address_network)
-
-gen_address_network()
+    return address_network
