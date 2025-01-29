@@ -41,10 +41,16 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
     config.append("!\ninterface FastEthernet0/0 \n no ip address \n duplex full")
     for interface in routeur['interfaces']:
         if "FastEthernet" in interface['name']:
+            found = True
             config.append(f" ipv6 address {dict_ip[interface['name']]}")
-    config.append(" ipv6 enable")
-    if rip == 1:
-        config.append(" ipv6 rip ng enable")
+            config.append(" ipv6 enable")
+            if rip == 1:
+                config.append(" ipv6 rip ng enable")
+            break
+        else :
+            found = False
+    if not found:
+        config.append(" ipv6 enable")
 
     # INTERFACES GIGABIT
     int=[]
@@ -56,14 +62,15 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
             config.append(f" no ip address\n negotiation auto")
             adrip = dict_ip[i]
             config.append(f" ipv6 address {adrip} \n ipv6 enable")
-            if rip == 1:
-                config.append(" ipv6 rip ng enable")
-            if ospf == 1:
-                for interface in routeur['interfaces']:
-                    if interface['name'] == i:
-                        area = 0 #on met la même area pour toutes les interfaces de tous les routeurs
-                        process_id = routeur["hostname"][1:] 
-                        config.append(f" ipv6 ospf {process_id} area {area}")
+            for interface in routeur['interfaces']:
+                if interface['name'] == i:
+                    if interface["network"] != "5" : #si ce n'est pas une interface de bordure (entre 2 AS)
+                        if rip == 1:
+                            config.append(" ipv6 rip ng enable")
+                        if ospf == 1:
+                            area = 0 #on met la même area pour toutes les interfaces de tous les routeurs
+                            process_id = routeur["hostname"][1:] 
+                            config.append(f" ipv6 ospf {process_id} area {area}")
         else:
             config.append(f"!\ninterface {i}\n no ip adress \n shutdown \n negotiation auto")
     
@@ -104,7 +111,7 @@ def gen_fin_config(config, routeur, routing_protocol):
     config.append("!\n!\n!\n!\n!")
     config.append("control-plane\n!\n!")
     config.append("line con 0\n exec-timeout 0 0\n privilege level 15\n logging synchronous\n stopbits 1")
-    config.append("line aux 0\n exec-timeout 0 0\nprivilege level 15\nlogging synchronous\n stopbits 1")
+    config.append("line aux 0\n exec-timeout 0 0\n privilege level 15\n logging synchronous\n stopbits 1")
     config.append("line vty 0 4\n login")
     config.append("!\n!\nend")
 
