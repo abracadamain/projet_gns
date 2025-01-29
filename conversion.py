@@ -72,7 +72,7 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
                             process_id = routeur["hostname"][1:] 
                             config.append(f" ipv6 ospf {process_id} area {area}")
         else:
-            config.append(f"!\ninterface {i}\n no ip adress \n shutdown \n negotiation auto")
+            config.append(f"!\ninterface {i}\n no ip address \n shutdown \n negotiation auto")
     
     return config
 
