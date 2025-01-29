@@ -19,7 +19,10 @@ def allocate_ip_add_routeur(f_intents, routeur_hostname) :
                 dict_ip["Loopback0"] = aut_sys["ip_range"][:-3] + num_hostname + "/128"
                 for k in range(len(router["interfaces"])) :
                     interface = router["interfaces"][k]
-                    adresse = aut_sys["ip_range"][:-4] + interface["network"] + "::" + num_hostname + "/64"
+                    if interface["network"] == "5" : # On choisi le préfixe du premier AS pour le lien entre les AS
+                        adresse = data["autonomous_systems"][0]["ip_range"][:-4] + interface["network"] + "::" + num_hostname + "/64"
+                    else : 
+                        adresse = aut_sys["ip_range"][:-4] + interface["network"] + "::" + num_hostname + "/64"
                     dict_ip[interface["name"]] = adresse
                 fin = True
                 break

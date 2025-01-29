@@ -5,45 +5,7 @@ from generate_ebgp import generate_ebgp_config
 from itertools import chain
 from extraire_json import read_intent_file
 from gen_network import gen_address_network
-# Exemple de script Python pour générer un fichier de configuration .cfg
 
-# Définition des paramètres pour chaque routeur
-routeurs = [
-    {
-        "hostname": "Routeur1",
-        "interfaces": [
-            {"name": "GigabitEthernet3/0", "ip": "2001:1:1:1::1"},
-            {"name": "GigabitEthernet1/0", "ip": "2001:1:1:2::1"},
-            {"name" : "Loopback0", "ip" : "2002:1:1:1::1"}
-        ],
-        "routes": [
-            {"destination": "0.0.0.0", "mask": "0.0.0.0", "next_hop": "192.168.1.254"}
-        ],
-        "protocol" : "rip",
-        "routeur-id" : "1.1.1.1",
-        "AS":"11",
-        "connected":"Routeur2"
-    },
-    {
-        "hostname": "Routeur2",
-        "interfaces": [
-            {"name": "GigabitEthernet1/0", "ip": "2001:1:1:1::2", "area":"0"},
-            {"name": "GigabitEthernet2/0", "ip": "2001:1:1:2::2", "area":"1"},
-            {"name" : "Loopback0", "ip" : "2002:2:2:2::2", "area":"2"}
-        ],
-        "routes": [
-            {"destination": "0.0.0.0", "mask": "0.0.0.0", "next_hop": "192.168.2.254"}
-        ],
-        "protocol" : "ospf",
-        "process-id" : "2",
-        "routeur-id" : "2.2.2.2",
-        "AS":"22"
-    }
-]
-
-giga = ["GigabitEthernet1/0", "GigabitEthernet2/0", "GigabitEthernet3/0"]
-
-# Fonction pour générer la configuration d'un routeur
 def generer_configuration(routeur, dict_ip, routing_protocol):
     giga = ["GigabitEthernet1/0", "GigabitEthernet2/0", "GigabitEthernet3/0"]
     config = []
@@ -104,13 +66,10 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
                         config.append(f" ipv6 ospf {process_id} area {area}")
         else:
             config.append(f"!\ninterface {i}\n no ip adress \n shutdown \n negotiation auto")
-
     
     return config
-    #return "\n".join(config)
 
 def ajouter_bgp(config, dict_ibgp, dict_ebgp):
-    # ajouter les neighbors avec dict_ibgp et dict_ebgp
     # BGP
     address_network = gen_address_network()
     config.append("!\n!")
@@ -152,17 +111,6 @@ def gen_fin_config(config, routeur, routing_protocol):
     config.append("!")
     return "\n".join(config)
 
-# Génération des fichiers de configuration
-'''
-for routeur in routeurs:
-    filename = f"{routeur['hostname']}.cfg"
-    with open(filename, "w") as file:
-        file.write(generer_configuration(routeur))
-
-
-with open("network_intents.json", "r") as f :
-    data = json.load(f)
-    '''
 data = read_intent_file("network_intents.json")
 
 for ausys in data["network"]["autonomous_systems"] :
