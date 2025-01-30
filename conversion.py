@@ -76,7 +76,7 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
     
     return config
 
-def ajouter_bgp(config, dict_ibgp, dict_ebgp):
+def ajouter_bgp(config, dict_ibgp, dict_ebgp, bordure):
     # BGP
     address_network = gen_address_network()
     config.append("!\n!")
@@ -95,8 +95,9 @@ def ajouter_bgp(config, dict_ibgp, dict_ebgp):
 
     config.append(" !\n address-family ipv4\n exit-address-family\n !")
     config.append(" address-family ipv6")
-    for add in address_network:
-        config.append(f"  network {add}/64")
+    if bordure : #si c'est un routeur de bordure (entre 2 AS)
+        for add in address_network:
+            config.append(f"  network {add}/64")
     for neighbor in chain(dict_ibgp['bgp']['neighbors'], dict_ebgp['bgp']['neighbors']): 
         n_ip = neighbor['neighbor_ip'][:-3]
         config.append(f"  neighbor {n_ip} activate")
@@ -129,16 +130,18 @@ def gen_fin_config(config, routeur, routing_protocol):
     return "\n".join(config)
 
 data = read_intent_file("network_intents.json")
-
+routeurs_bordure = data["network"]["ebgp_links"][0]
 for ausys in data["network"]["autonomous_systems"] :
     for routeur in ausys["routers"] :
+       bordure = routeur["hostname"] in routeurs_bordure #si le routeur est en bordure d'AS
        dict_ip = allocate_ip_add_routeur("network_intents.json", routeur["hostname"])
        filename = f"test {routeur['hostname']}.cfg"
        dict_ibgp = generate_ibgp_config(routeur, ausys)
        dict_ebgp = generate_ebgp_config(routeur, data)
+
        with open(filename, "w") as file:
            conf = generer_configuration(routeur, dict_ip, ausys["routing_protocol"])
-           conf = ajouter_bgp(conf, dict_ibgp, dict_ebgp)
+           conf = ajouter_bgp(conf, dict_ibgp, dict_ebgp, bordure)
            file.write(gen_fin_config(conf, routeur, ausys["routing_protocol"]))
 
 print("Fichiers de configuration générés avec succès.")
