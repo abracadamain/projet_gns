@@ -22,13 +22,9 @@ def generate_ibgp_config(router: dict, as_data: dict) -> str:
         }
     }
     # Configure iBGP neighbors
-    for link in as_data.get("ibgp_links", []):
-        if router["hostname"] in link:
-            # Determine the neighbor's hostname
-            if link[1] == router["hostname"]:
-                neighbor_name = link[0]
-            else:
-                neighbor_name = link[1]
+    for n_routeur in as_data["routers"]:
+        if n_routeur["hostname"] != router["hostname"]:
+            neighbor_name = n_routeur["hostname"]
             
             neighbor_ip_info=allocate_ip_add_routeur("network_intents.json",neighbor_name)    
 

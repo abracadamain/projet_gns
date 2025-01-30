@@ -10,7 +10,7 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
     giga = ["GigabitEthernet1/0", "GigabitEthernet2/0", "GigabitEthernet3/0"]
     config = []
     config.append("!\n!\n!\nversion 15.2\nservice timestamps debug datetime msec\nservice timestamps log datetime msec")
-    config.append(f"!\nhostname {routeur["hostname"]}\n!")
+    config.append(f"!\nhostname {routeur['hostname']}\n!")
     config.append("boot-start-marker\nboot-end-marker\n!\n!\n!\nno aaa new-model\nno ip icmp rate-limit unreachable\nip cef")
     config.append("!\n!\n!\n!\n!")
     config.append("no ip domain lookup\nipv6 unicast-routing\nipv6 cef\n!\n!")
@@ -30,7 +30,7 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
     adr_lb = dict_ip['Loopback0']
     if ospf == 1:
         area = 0
-        process_id = routeur["hostname"][1:]
+        process_id = routeur['hostname'][1:]
     config.append(f"!\ninterface Loopback0\n no ip address\n ipv6 address {adr_lb}\n ipv6 enable")
     if rip == 1:
         config.append(" ipv6 rip ng enable")
