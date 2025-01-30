@@ -12,3 +12,10 @@
 
 * nettoyer le code (print, imports, orga fonctions, ...)
 * policies ospf en bonus
+
+Loopback : 
+Pour RX1 
+ neighbor 2002:1:2:2::2 remote-as 11
+ neighbor 2002:1:2:2::2 update-source Loopback0
+ neighbor 2002:1:3:3::3 remote-as 11
+ neighbor 2002:1:3:3::3 update-source Loopback0
