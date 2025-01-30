@@ -30,5 +30,3 @@ def allocate_ip_add_routeur(f_intents, routeur_hostname) :
             break # On a trouvé le routeur
 
     return dict_ip
-                    
-#print(allocate_ip_add_routeur("network_intents.json", "R11"))
