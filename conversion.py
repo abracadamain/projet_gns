@@ -83,7 +83,7 @@ def ajouter_bgp(config, dict_ibgp, dict_ebgp):
     num = dict_ibgp['router'][1:]
     rt_id = num + "." + num + "." + num + "." + num
     as_number = dict_ibgp['bgp']['as_number']
-    config.append(f"routeur bgp {as_number}\n bgp router-id {rt_id}\n bgp log-neighbor-changes\n no bgp default ipv4-unicast")
+    config.append(f"router bgp {as_number}\n bgp router-id {rt_id}\n bgp log-neighbor-changes\n no bgp default ipv4-unicast")
     for neighbor in chain(dict_ibgp['bgp']['neighbors'], dict_ebgp['bgp']['neighbors']):
         n_ip = neighbor['neighbor_ip'][:-3] 
         n_as = neighbor['remote_as']
