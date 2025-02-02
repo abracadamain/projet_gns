@@ -85,6 +85,9 @@ def ajouter_bgp(config, dict_ibgp, dict_ebgp, bordure, as_number):
     config.append(f"router bgp {as_number}\n bgp router-id {rt_id}\n bgp log-neighbor-changes\n no bgp default ipv4-unicast")
     for neighbor in chain(dict_ibgp['bgp']['neighbors'], dict_ebgp['bgp']['neighbors']):
         n_as = neighbor['remote_as']
+        if bordure and neighbor['remote_as'] != as_number:
+            n_ip = neighbor['neighbor_ip'][:-3] 
+            config.append(f" neighbor {n_ip} remote-as {n_as}")
         if 'update_source' in neighbor :
             n_loopback = neighbor['update_source'][:-4]
             config.append(f" neighbor {n_loopback} remote-as {n_as}")
@@ -96,6 +99,9 @@ def ajouter_bgp(config, dict_ibgp, dict_ebgp, bordure, as_number):
         for add in address_network:
             config.append(f"  network {add}/64")
     for neighbor in chain(dict_ibgp['bgp']['neighbors'], dict_ebgp['bgp']['neighbors']): 
+        if bordure and neighbor['remote_as'] != as_number:
+            n_ip = neighbor['neighbor_ip'][:-3]
+            config.append(f"  neighbor {n_ip} activate")
         if 'update_source' in neighbor :
             n_loopback = neighbor['update_source'][:-4]
             config.append(f"  neighbor {n_loopback} activate")
@@ -123,7 +129,14 @@ def gen_fin_config(config, routeur, routing_protocol):
 
     config.append("!")
     return "\n".join(config)
-
+"""
+def bordure(hostname, data):
+    routeurs_bordure = data["network"]["ebgp_links"][0]
+    for ausys in data["network"]["autonomous_systems"] :
+        for routeur in ausys["routers"] :
+            if routeur["hostname"] == hostname:
+                return routeur["hostname"] in routeurs_bordure
+"""
 data = read_intent_file("network_intents.json")
 routeurs_bordure = data["network"]["ebgp_links"][0]
 for ausys in data["network"]["autonomous_systems"] :
