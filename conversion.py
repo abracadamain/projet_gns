@@ -16,7 +16,7 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
     config.append("multilink bundle-name authenticated")
     config.append("!\n!\n!\n!\n!\n!\n!\n!\n!")
     config.append("ip tcp synwait-time 5")
-    config.append("!\n!\n!\n!\n!\n!\n!\!\n!\n!\n!\n!")
+    config.append("!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!")
 
     rip = 0
     ospf = 0
