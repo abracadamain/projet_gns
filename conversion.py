@@ -14,9 +14,9 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
     config.append("!\n!\n!\n!\n!")
     config.append("no ip domain lookup\nipv6 unicast-routing\nipv6 cef\n!\n!")
     config.append("multilink bundle-name authenticated")
-    config.append("!\n!\n!\n!\n!\n!\n!")
+    config.append("!\n!\n!\n!\n!\n!\n!\n!\n!")
     config.append("ip tcp synwait-time 5")
-    config.append("!\n!\n!\n!\n!\n!\n!")
+    config.append("!\n!\n!\n!\n!\n!\n!\!\n!\n!\n!\n!")
 
     rip = 0
     ospf = 0
@@ -44,7 +44,7 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
             config.append(f" ipv6 address {dict_ip[interface['name']]}")
             config.append(" ipv6 enable")
             if rip == 1:
-                config.append(" ipv6 rip ng enable")
+                config.append(" ipv6 rip ng enable")#pourquoi qu'il n'affiche pas dans cfg
             break
         else :
             found = False
@@ -114,7 +114,7 @@ def gen_fin_config(config, routeur, routing_protocol):
         rt_id = process_id + "." + process_id + "." + process_id + "." + process_id
         config.append(f"ipv6 router ospf {process_id} \n router-id {rt_id}")
         
-    config.append("!\n!\n!\n!\n!")
+    config.append("!\n!\n!\n!")
     config.append("control-plane\n!\n!")
     config.append("line con 0\n exec-timeout 0 0\n privilege level 15\n logging synchronous\n stopbits 1")
     config.append("line aux 0\n exec-timeout 0 0\n privilege level 15\n logging synchronous\n stopbits 1")
