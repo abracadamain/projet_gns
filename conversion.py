@@ -3,7 +3,7 @@ from generate_ibgp import generate_ibgp_config
 from generate_ebgp import generate_ebgp_config
 from itertools import chain
 from extraire_json import read_intent_file
-from gen_network import gen_address_network
+from gen_network import gen_address_network, gen_address_loopback_network
 
 def generer_configuration(routeur, dict_ip, routing_protocol):
     giga = ["GigabitEthernet1/0", "GigabitEthernet2/0", "GigabitEthernet3/0"]
@@ -98,6 +98,8 @@ def ajouter_bgp(config, dict_ibgp, dict_ebgp, bordure, as_number):
     if bordure : #si c'est un routeur de bordure (entre 2 AS)
         for add in address_network:
             config.append(f"  network {add}/64")
+        for add in gen_address_loopback_network(as_number):
+            config.append(f"  network {add}")
     for neighbor in chain(dict_ibgp['bgp']['neighbors'], dict_ebgp['bgp']['neighbors']): 
         if bordure and neighbor['remote_as'] != as_number:
             n_ip = neighbor['neighbor_ip'][:-3]
