@@ -63,7 +63,7 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
             config.append(f" ipv6 address {adrip} \n ipv6 enable")
             for interface in routeur['interfaces']:
                 if interface['name'] == i:
-                    if interface["network"] != "5" : #si ce n'est pas une interface de bordure (entre 2 AS)
+                    if routeur["hostname"][1] == interface["connected"][1] : #si ce n'est pas une interface de bordure (entre 2 AS)
                         if rip == 1:
                             config.append(" ipv6 rip ng enable")
                         if ospf == 1:
@@ -148,7 +148,7 @@ for ausys in data["network"]["autonomous_systems"] :
     for routeur in ausys["routers"] :
        bordure = routeur["hostname"] in routeurs_bordure #si le routeur est en bordure d'AS
        dict_ip = allocate_ip_add_routeur("network_intents.json", routeur["hostname"])
-       filename = f"test {routeur['hostname']}.cfg"
+       filename = f"{routeur['hostname']}.cfg"
        dict_ibgp = generate_ibgp_config(routeur, ausys)
        dict_ebgp = generate_ebgp_config(routeur, data)
 
