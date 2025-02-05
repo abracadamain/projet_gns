@@ -6,7 +6,7 @@ from extraire_json import read_intent_file
 from gen_network import gen_address_network
 
 def generer_configuration(routeur, dict_ip, routing_protocol):
-    global passive_interface_name
+    passive_interface_name = ""
     giga = ["GigabitEthernet1/0", "GigabitEthernet2/0", "GigabitEthernet3/0"]
     config = []
     config.append("!\n!\n!\nversion 15.2\nservice timestamps debug datetime msec\nservice timestamps log datetime msec")
@@ -45,7 +45,14 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
             config.append(f" ipv6 address {dict_ip[interface['name']]}")
             config.append(" ipv6 enable")
             if rip == 1:
-                config.append(" ipv6 rip ng enable")
+                if routeur["hostname"][1] == interface["connected"][1] : #si ce n'est pas une interface de bordure (entre 2 AS)
+                    config.append(" ipv6 rip ng enable")
+            if ospf == 1:
+                area = 0 #on met la même area pour toutes les interfaces de tous les routeurs
+                process_id = routeur["hostname"][1:] 
+                config.append(f" ipv6 ospf {process_id} area {area}")
+                if routeur["hostname"][1] != interface["connected"][1] : #si c'est une interface de bordure, on la met en passive
+                    passive_interface_name = interface["name"]
             break
         else :
             found = False
@@ -72,12 +79,13 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
                         process_id = routeur["hostname"][1:] 
                         config.append(f" ipv6 ospf {process_id} area {area}")
                         if routeur["hostname"][1] != interface["connected"][1] : #si c'est une interface de bordure, on la met en passive
+                            print('tesssssssssssssst' + routeur["hostname"], interface["connected"])
                             passive_interface_name = interface["name"]
 
         else:
             config.append(f"!\ninterface {i}\n no ip address \n shutdown \n negotiation auto")
     
-    return config
+    return config, passive_interface_name
 
 def ajouter_bgp(config, dict_ibgp, dict_ebgp, bordure, as_number):
     # BGP
@@ -113,7 +121,7 @@ def ajouter_bgp(config, dict_ibgp, dict_ebgp, bordure, as_number):
     config.append(" exit-address-family")
     return config
 
-def gen_fin_config(config, routeur, routing_protocol):
+def gen_fin_config(config, routeur, routing_protocol, passive_interface_name):
     # FIN
     config.append("!\nip forward-protocol nd\n!\n!\nno ip http server\nno ip http secure-server\n!")
 
@@ -123,7 +131,8 @@ def gen_fin_config(config, routeur, routing_protocol):
         process_id = routeur["hostname"][1:]
         rt_id = process_id + "." + process_id + "." + process_id + "." + process_id
         config.append(f"ipv6 router ospf {process_id} \n router-id {rt_id}")
-        config.append(f" passive-interface {passive_interface_name}")
+        if passive_interface_name != "":
+            config.append(f" passive-interface {passive_interface_name}")
         
     config.append("!\n!\n!\n!")
     config.append("control-plane\n!\n!")
@@ -146,8 +155,8 @@ for ausys in data["network"]["autonomous_systems"] :
        dict_ebgp = generate_ebgp_config(routeur, data)
 
        with open(filename, "w") as file:
-           conf = generer_configuration(routeur, dict_ip, ausys["routing_protocol"])
-           conf = ajouter_bgp(conf, dict_ibgp, dict_ebgp, bordure, ausys["as_number"])
-           file.write(gen_fin_config(conf, routeur, ausys["routing_protocol"]))
+            conf, passive_interface_name = generer_configuration(routeur, dict_ip, ausys["routing_protocol"])
+            conf = ajouter_bgp(conf, dict_ibgp, dict_ebgp, bordure, ausys["as_number"])
+            file.write(gen_fin_config(conf, routeur, ausys["routing_protocol"], passive_interface_name))
 
 print("Fichiers de configuration générés avec succès.")
