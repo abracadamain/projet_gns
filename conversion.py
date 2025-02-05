@@ -6,6 +6,7 @@ from extraire_json import read_intent_file
 from gen_network import gen_address_network
 
 def generer_configuration(routeur, dict_ip, routing_protocol):
+    global passive_interface_name
     giga = ["GigabitEthernet1/0", "GigabitEthernet2/0", "GigabitEthernet3/0"]
     config = []
     config.append("!\n!\n!\nversion 15.2\nservice timestamps debug datetime msec\nservice timestamps log datetime msec")
@@ -44,7 +45,7 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
             config.append(f" ipv6 address {dict_ip[interface['name']]}")
             config.append(" ipv6 enable")
             if rip == 1:
-                config.append(" ipv6 rip ng enable")#pourquoi qu'il n'affiche pas dans cfg
+                config.append(" ipv6 rip ng enable")
             break
         else :
             found = False
@@ -63,13 +64,16 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
             config.append(f" ipv6 address {adrip} \n ipv6 enable")
             for interface in routeur['interfaces']:
                 if interface['name'] == i:
-                    if routeur["hostname"][1] == interface["connected"][1] : #si ce n'est pas une interface de bordure (entre 2 AS)
-                        if rip == 1:
+                    if rip == 1:
+                        if routeur["hostname"][1] == interface["connected"][1] : #si ce n'est pas une interface de bordure (entre 2 AS)
                             config.append(" ipv6 rip ng enable")
-                        if ospf == 1:
-                            area = 0 #on met la même area pour toutes les interfaces de tous les routeurs
-                            process_id = routeur["hostname"][1:] 
-                            config.append(f" ipv6 ospf {process_id} area {area}")
+                    if ospf == 1:
+                        area = 0 #on met la même area pour toutes les interfaces de tous les routeurs
+                        process_id = routeur["hostname"][1:] 
+                        config.append(f" ipv6 ospf {process_id} area {area}")
+                        if routeur["hostname"][1] != interface["connected"][1] : #si c'est une interface de bordure, on la met en passive
+                            passive_interface_name = interface["name"]
+
         else:
             config.append(f"!\ninterface {i}\n no ip address \n shutdown \n negotiation auto")
     
@@ -119,6 +123,7 @@ def gen_fin_config(config, routeur, routing_protocol):
         process_id = routeur["hostname"][1:]
         rt_id = process_id + "." + process_id + "." + process_id + "." + process_id
         config.append(f"ipv6 router ospf {process_id} \n router-id {rt_id}")
+        config.append(f" passive-interface {passive_interface_name}")
         
     config.append("!\n!\n!\n!")
     config.append("control-plane\n!\n!")
@@ -129,14 +134,7 @@ def gen_fin_config(config, routeur, routing_protocol):
 
     config.append("!")
     return "\n".join(config)
-"""
-def bordure(hostname, data):
-    routeurs_bordure = data["network"]["ebgp_links"][0]
-    for ausys in data["network"]["autonomous_systems"] :
-        for routeur in ausys["routers"] :
-            if routeur["hostname"] == hostname:
-                return routeur["hostname"] in routeurs_bordure
-"""
+
 data = read_intent_file("network_intents.json")
 routeurs_bordure = data["network"]["ebgp_links"][0]
 for ausys in data["network"]["autonomous_systems"] :
