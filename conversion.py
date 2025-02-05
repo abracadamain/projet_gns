@@ -79,7 +79,6 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
                         process_id = routeur["hostname"][1:] 
                         config.append(f" ipv6 ospf {process_id} area {area}")
                         if routeur["hostname"][1] != interface["connected"][1] : #si c'est une interface de bordure, on la met en passive
-                            print('tesssssssssssssst' + routeur["hostname"], interface["connected"])
                             passive_interface_name = interface["name"]
 
         else:

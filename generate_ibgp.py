@@ -1,5 +1,3 @@
-import extraire_json
-import json
 from gen_ip import allocate_ip_add_routeur
 def generate_ibgp_config(router: dict, as_data: dict) -> str:
     """
@@ -40,8 +38,3 @@ def generate_ibgp_config(router: dict, as_data: dict) -> str:
             })
 
     return ibgp_config
-data=extraire_json.read_intent_file("network_intents.json")
-as_data=extraire_json.extract_as_data(data,"100")
-router=extraire_json.extract_router_data(as_data, "R11") 
-ibgp_config = generate_ibgp_config(router, as_data)
-print(ibgp_config)
