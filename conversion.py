@@ -5,7 +5,25 @@ from itertools import chain
 from extraire_json import read_intent_file
 from gen_network import gen_address_network
 
+def configIGP(config, routeur, interface, routing_protocol, passive_interface_name):
+    """
+    Ajoute la configuration de l'IGP (OSPF ou RIP) à la configuration des interfaces.
+    """
+    if routing_protocol=="RIP":
+        if routeur["hostname"][1] == interface["connected"][1] : #si ce n'est pas une interface de bordure (entre 2 AS)
+            config.append(" ipv6 rip ng enable")
+    if routing_protocol=="OSPF":
+        area = 0 #on met la même area pour toutes les interfaces de tous les routeurs
+        process_id = routeur["hostname"][1:] 
+        config.append(f" ipv6 ospf {process_id} area {area}")
+        if routeur["hostname"][1] != interface["connected"][1] : #si c'est une interface de bordure, on la met en passive
+            passive_interface_name = interface["name"]
+    return config, passive_interface_name
+
 def generer_configuration(routeur, dict_ip, routing_protocol):
+    """
+    Genere la config des interfaces d'un routeur.
+    """
     passive_interface_name = ""
     giga = ["GigabitEthernet1/0", "GigabitEthernet2/0", "GigabitEthernet3/0"]
     config = []
@@ -19,22 +37,15 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
     config.append("ip tcp synwait-time 5")
     config.append("!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!")
 
-    rip = 0
-    ospf = 0
-    if routing_protocol=="RIP":
-        rip = 1
-    elif routing_protocol=="OSPF":
-        ospf = 1
-
     # INTERFACES LOOPBACK  
     adr_lb = dict_ip['Loopback0']
-    if ospf == 1:
+    if routing_protocol=="OSPF":
         area = 0
         process_id = routeur['hostname'][1:]
     config.append(f"!\ninterface Loopback0\n no ip address\n ipv6 address {adr_lb}\n ipv6 enable")
-    if rip == 1:
+    if routing_protocol=="RIP":
         config.append(" ipv6 rip ng enable")
-    if ospf == 1:
+    if routing_protocol=="OSPF":
         config.append(" ipv6 ospf " + process_id + f" area {area}")
 
     # INTERFACE FAST ETHERNET
@@ -44,15 +55,7 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
             found = True
             config.append(f" ipv6 address {dict_ip[interface['name']]}")
             config.append(" ipv6 enable")
-            if rip == 1:
-                if routeur["hostname"][1] == interface["connected"][1] : #si ce n'est pas une interface de bordure (entre 2 AS)
-                    config.append(" ipv6 rip ng enable")
-            if ospf == 1:
-                area = 0 #on met la même area pour toutes les interfaces de tous les routeurs
-                process_id = routeur["hostname"][1:] 
-                config.append(f" ipv6 ospf {process_id} area {area}")
-                if routeur["hostname"][1] != interface["connected"][1] : #si c'est une interface de bordure, on la met en passive
-                    passive_interface_name = interface["name"]
+            config, passive_interface_name = configIGP(config, routeur, interface, routing_protocol, passive_interface_name)
             break
         else :
             found = False
@@ -71,22 +74,15 @@ def generer_configuration(routeur, dict_ip, routing_protocol):
             config.append(f" ipv6 address {adrip} \n ipv6 enable")
             for interface in routeur['interfaces']:
                 if interface['name'] == i:
-                    if rip == 1:
-                        if routeur["hostname"][1] == interface["connected"][1] : #si ce n'est pas une interface de bordure (entre 2 AS)
-                            config.append(" ipv6 rip ng enable")
-                    if ospf == 1:
-                        area = 0 #on met la même area pour toutes les interfaces de tous les routeurs
-                        process_id = routeur["hostname"][1:] 
-                        config.append(f" ipv6 ospf {process_id} area {area}")
-                        if routeur["hostname"][1] != interface["connected"][1] : #si c'est une interface de bordure, on la met en passive
-                            passive_interface_name = interface["name"]
-
+                    config, passive_interface_name = configIGP(config, routeur, interface, routing_protocol, passive_interface_name)
         else:
             config.append(f"!\ninterface {i}\n no ip address \n shutdown \n negotiation auto")
-    
     return config, passive_interface_name
 
 def ajouter_bgp(config, dict_ibgp, dict_ebgp, bordure, as_number):
+    """
+    Genere config bgp
+    """
     # BGP
     address_network = gen_address_network(as_number)
     config.append("!\n!")
@@ -121,6 +117,9 @@ def ajouter_bgp(config, dict_ibgp, dict_ebgp, bordure, as_number):
     return config
 
 def gen_fin_config(config, routeur, routing_protocol, passive_interface_name):
+    """
+    Genere la fin de la config
+    """
     # FIN
     config.append("!\nip forward-protocol nd\n!\n!\nno ip http server\nno ip http secure-server\n!")
 
@@ -143,19 +142,26 @@ def gen_fin_config(config, routeur, routing_protocol, passive_interface_name):
     config.append("!")
     return "\n".join(config)
 
-data = read_intent_file("network_intents.json")
-routeurs_bordure = data["network"]["ebgp_links"][0]
-for ausys in data["network"]["autonomous_systems"] :
-    for routeur in ausys["routers"] :
-       bordure = routeur["hostname"] in routeurs_bordure #si le routeur est en bordure d'AS
-       dict_ip = allocate_ip_add_routeur("network_intents.json", routeur["hostname"])
-       filename = f"{routeur['hostname']}.cfg"
-       dict_ibgp = generate_ibgp_config(routeur, ausys)
-       dict_ebgp = generate_ebgp_config(routeur, data)
+def gen_fichiers_cfg(fichier_intents):
+    """
+    Genere les fichiers de configuration de tous les routeurs à partir du fichier d'intentions
+    """
+    data = read_intent_file(fichier_intents)
+    routeurs_bordure = data["network"]["ebgp_links"][0]
+    for ausys in data["network"]["autonomous_systems"] :
+        for routeur in ausys["routers"] :
+            bordure = routeur["hostname"] in routeurs_bordure #vrai si le routeur est en bordure d'AS
+            dict_ip = allocate_ip_add_routeur(fichier_intents, routeur["hostname"])
+            filename = f"{routeur['hostname']}.cfg"
+            dict_ibgp = generate_ibgp_config(routeur, ausys)
+            dict_ebgp = generate_ebgp_config(routeur, data)
 
-       with open(filename, "w") as file:
-            conf, passive_interface_name = generer_configuration(routeur, dict_ip, ausys["routing_protocol"])
-            conf = ajouter_bgp(conf, dict_ibgp, dict_ebgp, bordure, ausys["as_number"])
-            file.write(gen_fin_config(conf, routeur, ausys["routing_protocol"], passive_interface_name))
+        with open(filename, "w") as file:
+                conf, passive_interface_name = generer_configuration(routeur, dict_ip, ausys["routing_protocol"])
+                conf = ajouter_bgp(conf, dict_ibgp, dict_ebgp, bordure, ausys["as_number"])
+                file.write(gen_fin_config(conf, routeur, ausys["routing_protocol"], passive_interface_name))
 
-print("Fichiers de configuration générés avec succès.")
+    print("Fichiers de configuration générés avec succès.")
+
+if __name__ == "__main__":
+    gen_fichiers_cfg("network_intents.json")

@@ -1,14 +1,13 @@
-import json
+from extraire_json import read_intent_file
 
 def allocate_ip_add_routeur(f_intents, routeur_hostname) :
-    """Alloue les adresses IP d'un routeur pour chaque interface, incluant le loopback.
-    Return : dictionnaire des adresses IP allouées"""
-    with open(f_intents, "r") as f :
-        data = json.load(f)
-
+    """
+    Alloue les adresses IP d'un routeur pour chaque interface, incluant le loopback.
+    Return : dictionnaire des adresses IP allouées
+    """
     dict_ip = {}
     fin = False
-    data = data["network"]
+    data = read_intent_file(f_intents)['network']
     for i in range (len(data["autonomous_systems"])) :
         aut_sys = data["autonomous_systems"][i]
         routers = aut_sys["routers"]
